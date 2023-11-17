@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<!-- saved from url=(0032)http://127.0.0.1:5500/index.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+<title>Display a map on a webpage</title>
+<meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+<script src="./Display a map on a webpage_files/mapbox-gl.js.download"></script>
+<link href="./Display a map on a webpage_files/mapbox-gl.css" rel="stylesheet">
+
+<style>
+body { margin: 0; padding: 0; }
+	h2,h3 {
+      margin: 10px;
+      font-size: 1.2em;
+    }
+    h3 {
+      font-size: 1em;
+    }
+    p {
+      font-size: 0.85em;
+      margin: 10px;
+      text-align: left;
+    }
+    .map-overlay {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      background: rgba(255, 255, 255, 0.8);
+      margin-right: 20px;
+      font-family: Arial, sans-serif;
+      overflow: auto;
+      border-radius: 3px;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+    #features {
+      top: 0;
+      height: 100px;
+      margin-top: 20px;
+      width: 250px;
+    }
+    #legend {
+      padding: 10px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      line-height: 18px;
+      height: 150px;
+      margin-bottom: 40px;
+      width: 100px;
+    }
+    .legend-key {
+      display: inline-block;
+      border-radius: 20%;
+      width: 10px;
+      height: 10px;
+      margin-right: 5px;
+    }
+</style>
+</head>
+<body>
+	<div id="map" class="mapboxgl-map"><div class="mapboxgl-canary" style="visibility: hidden;"></div><div class="mapboxgl-canvas-container mapboxgl-interactive mapboxgl-touch-drag-pan mapboxgl-touch-zoom-rotate"><canvas class="mapboxgl-canvas" tabindex="0" aria-label="Map" role="region" width="2562" height="873" style="width: 1707.33px; height: 581.333px;"></canvas></div><div class="mapboxgl-control-container"><div class="mapboxgl-ctrl-top-left"></div><div class="mapboxgl-ctrl-top-right"></div><div class="mapboxgl-ctrl-bottom-left"><div class="mapboxgl-ctrl" style="display: block;"><a class="mapboxgl-ctrl-logo" target="_blank" rel="noopener nofollow" href="https://www.mapbox.com/" aria-label="Mapbox logo"></a></div></div><div class="mapboxgl-ctrl-bottom-right"><div class="mapboxgl-ctrl mapboxgl-ctrl-attrib"><button class="mapboxgl-ctrl-attrib-button" type="button" aria-label="Toggle attribution"><span class="mapboxgl-ctrl-icon" aria-hidden="true" title="Toggle attribution"></span></button><div class="mapboxgl-ctrl-attrib-inner" role="list">© 2016 City of Philadelphia <a href="https://www.mapbox.com/about/maps/" target="_blank" title="Mapbox" aria-label="Mapbox">© Mapbox</a> <a href="https://www.openstreetmap.org/about/" target="_blank" title="OpenStreetMap" aria-label="OpenStreetMap">© OpenStreetMap</a> <a class="mapbox-improve-map" href="https://apps.mapbox.com/feedback/?owner=venkata123&amp;id=clp1tf5qq00rv01nw73xw5oyl&amp;access_token=pk.eyJ1IjoidmVua2F0YTEyMyIsImEiOiJjbHAxdnhjZHYwbWN6MnJwNXA2d3Q5ZWY2In0.XMS2-tg8MGF-B2voxb4SIw" target="_blank" aria-label="Map feedback" rel="noopener nofollow">Improve this map</a></div></div></div></div></div>
+  	<div class="map-overlay" id="features">
+    	<h2>Building footprint map</h2>
+    	<div id="pd"><p>The building id is</p></div>
+  	</div>
+  	<div class="map-overlay" id="legend"><div><span class="legend-key" style="background-color: rgb(191, 8, 8);"></span><span>Commercial land</span></div><div><span class="legend-key" style="background-color: rgb(50, 241, 69);"></span><span>Residential land</span></div><div><span class="legend-key" style="background-color: rgb(233, 245, 77);"></span><span>Institutional land</span></div><div><span class="legend-key" style="background-color: rgb(0, 0, 0);"></span><span>Other</span></div></div>
+
+<script>
+	mapboxgl.accessToken = 'pk.eyJ1IjoidmVua2F0YTEyMyIsImEiOiJjbHAxdnhjZHYwbWN6MnJwNXA2d3Q5ZWY2In0.XMS2-tg8MGF-B2voxb4SIw';
+	const map = new mapboxgl.Map({
+		container: 'map', // container ID
+		style: 'mapbox://styles/venkata123/clp1tf5qq00rv01nw73xw5oyl', // style URL
+		zoom: 10, // starting zoom
+		center: [-75.139040, 40.005752] // starting center
+	});
+	// add legend to your map
+    var layers = ['Commercial land', 'Residential land', 'Institutional land', 'Other'];
+    var colors = ['#bf0808', '#32f145', '#e9f54d', '#000000'];
+	for (i = 0; i < layers.length; i++) {
+      	var layer = layers[i];
+      	var color = colors[i];
+      	var item = document.createElement('div');
+      	var key = document.createElement('span');
+      	key.className = 'legend-key';
+      	key.style.backgroundColor = color;
+	var value = document.createElement('span');
+      	value.innerHTML = layer;
+      	item.appendChild(key);
+      	item.appendChild(value);
+      	legend.appendChild(item);
+    }
+	map.on('load', function() {
+      map.getCanvas().style.cursor = 'default';
+      map.fitBounds([
+          [-75.299998, 40.091772],
+          [-75.011607, 39.884492]
+        ]);
+        
+        // change info window on hover
+        map.on('mousemove', function(e) {
+          var states = map.queryRenderedFeatures(e.point, {
+            layers: ['buildings-phi'] // get from the mapbox top left layer information
+          });
+          
+          if (states.length > 0) {
+            document.getElementById('pd').innerHTML =
+              '<h3><strong> building id:' +
+              // states[0].properties.fid +
+              '</strong></h3><p><strong><em>' +
+              states[0].properties.landuse;
+          } else {
+            document.getElementById('pd').innerHTML =
+              '<p>The building id is: </p>';
+          }
+        });
+
+        mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+var map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/streets-v11',
+  center: [0, 0],
+  zoom: 2
+});
+
+var draw = new MapboxDraw();
+map.addControl(draw);
+
+map.on('draw.create', function () {
+  var geoJSONData = draw.getAll();
+
+  // Convert GeoJSON data to a Blob
+  var blob = new Blob([JSON.stringify(geoJSONData)], { type: 'application/json' });
+
+  // Create a download link
+  var downloadLink = document.createElement('a');
+  downloadLink.href = URL.createObjectURL(blob);
+  downloadLink.download = 'drawn_features.geojson';
+
+  // Trigger a click on the link to start the download
+  downloadLink.click();
+});
+
+
+});
+</script>
+ 
+<!-- Code injected by live-server -->
+<script>
+	// <![CDATA[  <-- For SVG support
+	if ('WebSocket' in window) {
+		(function () {
+			function refreshCSS() {
+				var sheets = [].slice.call(document.getElementsByTagName("link"));
+				var head = document.getElementsByTagName("head")[0];
+				for (var i = 0; i < sheets.length; ++i) {
+					var elem = sheets[i];
+					var parent = elem.parentElement || head;
+					parent.removeChild(elem);
+					var rel = elem.rel;
+					if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+						var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+						elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+					}
+					parent.appendChild(elem);
+				}
+			}
+			var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+			var address = protocol + window.location.host + window.location.pathname + '/ws';
+			var socket = new WebSocket(address);
+			socket.onmessage = function (msg) {
+				if (msg.data == 'reload') window.location.reload();
+				else if (msg.data == 'refreshcss') refreshCSS();
+			};
+			if (sessionStorage && !sessionStorage.getItem('IsThisFirstTime_Log_From_LiveServer')) {
+				console.log('Live reload enabled.');
+				sessionStorage.setItem('IsThisFirstTime_Log_From_LiveServer', true);
+			}
+		})();
+	}
+	else {
+		console.error('Upgrade your browser. This Browser is NOT supported WebSocket for Live-Reloading.');
+	}
+	// ]]>
+</script>
+
+</body></html>
